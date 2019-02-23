@@ -9,3 +9,4 @@ message Work {
 message Result {
     string response = 1;
 }
+

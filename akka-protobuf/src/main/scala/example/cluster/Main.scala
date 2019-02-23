@@ -42,7 +42,7 @@ class Hello extends Actor with ActorLogging with Timers {
     case Work(w) =>
       log.info(s"\n\n HELLO actor >>> ${Work(w)}")
       mediator ! DistributedPubSubMediator.Publish("outTopic", Result("Done!"))
-      mediator ! DistributedPubSubMediator.Publish("outTopic", Tick)
+
     case _ =>
   }
 }
@@ -63,6 +63,7 @@ class Hi extends Actor with ActorLogging with Timers {
   override def receive: Receive = {
     case Tick =>
       log.info(s"\n\n Hi actor >>> ${context.self.path}")
+      //timers.startSingleTimer(s"tick", Tick, nextTick)
       mediator ! DistributedPubSubMediator.Publish("inTopic", Work("do-it"))
 
     case Result(r) =>
