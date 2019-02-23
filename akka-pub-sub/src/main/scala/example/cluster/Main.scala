@@ -1,4 +1,4 @@
-package example.cluster
+package example.cluster.pubsub
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props, Timers}
 import akka.cluster.pubsub.{DistributedPubSub, DistributedPubSubMediator}
