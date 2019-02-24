@@ -28,7 +28,6 @@ object Main extends App {
 class Hello extends Actor with ActorLogging with Timers {
 
   val mediator: ActorRef = DistributedPubSub(context.system).mediator
-
   mediator ! DistributedPubSubMediator.Subscribe("inTopic", self)
 
   override def preStart(): Unit = {
@@ -37,12 +36,14 @@ class Hello extends Actor with ActorLogging with Timers {
   override def receive: Receive = {
     case _: DistributedPubSubMediator.SubscribeAck =>
     case Tick =>
-      log.info(s"\n\n HELLO actor >>> ${context.self.path}")
+      val ref = sender()
+      log.info(s"\n\n ACTOR::HELLO >>> Tick from >>> ${ref.path}\n")
 
     case Work(w) =>
-      log.info(s"\n\n HELLO actor >>> ${Work(w)}")
-      mediator ! DistributedPubSubMediator.Publish("outTopic", Result("Done!"))
-
+      val ref = sender()
+      log.info(s"\n\n ACTOR::HELLO >>> ${Work(w)} from >>> ${ref.path}\n")
+      ref !  Result("Done!")
+      ref ! Tick(remote = true)
     case _ =>
   }
 }
@@ -52,22 +53,27 @@ class Hello extends Actor with ActorLogging with Timers {
 class Hi extends Actor with ActorLogging with Timers {
 
   val mediator: ActorRef = DistributedPubSub(context.system).mediator
-
   mediator ! DistributedPubSubMediator.Subscribe("outTopic", self)
 
 
   override def preStart(): Unit = {
-    timers.startSingleTimer("tick", Tick, 15.seconds)
+    timers.startSingleTimer("tick", Tick, 8.seconds)
   }
 
   override def receive: Receive = {
     case Tick =>
-      log.info(s"\n\n Hi actor >>> ${context.self.path}")
-      //timers.startSingleTimer(s"tick", Tick, nextTick)
+      val ref = sender()
+      log.info(s"\n\n ACTOR::HI >>> Tick from >>>  ${ref.path}\n")
       mediator ! DistributedPubSubMediator.Publish("inTopic", Work("do-it"))
 
+    case Tick(remote) =>
+      val ref = sender()
+      log.info(s"\n\n ACTOR::HI >>> Tick(remote = $remote) from >>> ${ref.path}\n")
+
+
     case Result(r) =>
-      log.info(s"\n\n *** Hi Actor >> ${Result(r)}")
+      val ref = sender()
+      log.info(s"\n\n ACTOR::HI >>> ${Result(r)} from >>> ${ref.path}\n")
 
   }
 }
@@ -75,4 +81,4 @@ class Hi extends Actor with ActorLogging with Timers {
 // # Protocols
 //case class Work(message: String)
 //case class Result(response: String)
-case object Tick
+//case object Tick

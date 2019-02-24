@@ -10,3 +10,7 @@ message Result {
     string response = 1;
 }
 
+message Tick {
+    bool remote = 1;
+}
+
